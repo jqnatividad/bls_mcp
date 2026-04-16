@@ -40,6 +40,14 @@ export class Client {
     });
   }
 
+  private authParams(extra?: Record<string, unknown>): Record<string, unknown> | undefined {
+    const params: Record<string, unknown> = { ...extra };
+    if (this.registrationKey) {
+      params.registrationkey = this.registrationKey;
+    }
+    return Object.keys(params).length > 0 ? params : undefined;
+  }
+
   private handleError(error: unknown): never {
     if (error instanceof AxiosError) {
       const status = error.response?.status;
@@ -60,7 +68,8 @@ export class Client {
   async getSingleSeries(seriesId: string): Promise<unknown> {
     try {
       const response = await this.http.get(
-        `/timeseries/data/${seriesId}`
+        `/timeseries/data/${seriesId}`,
+        { params: this.authParams() }
       );
       return response.data;
     } catch (error) {
@@ -72,7 +81,7 @@ export class Client {
     try {
       const response = await this.http.get(
         `/timeseries/data/${seriesId}`,
-        { params: { latest: true } }
+        { params: this.authParams({ latest: true }) }
       );
       return response.data;
     } catch (error) {
@@ -98,7 +107,7 @@ export class Client {
   async getPopularSeries(survey?: string): Promise<unknown> {
     try {
       const response = await this.http.get("/timeseries/popular", {
-        params: survey ? { survey } : undefined,
+        params: this.authParams(survey ? { survey } : undefined),
       });
       return response.data;
     } catch (error) {
@@ -108,7 +117,9 @@ export class Client {
 
   async getAllSurveys(): Promise<unknown> {
     try {
-      const response = await this.http.get("/surveys");
+      const response = await this.http.get("/surveys", {
+        params: this.authParams(),
+      });
       return response.data;
     } catch (error) {
       this.handleError(error);
@@ -118,7 +129,8 @@ export class Client {
   async getSurvey(surveyAbbreviation: string): Promise<unknown> {
     try {
       const response = await this.http.get(
-        `/surveys/${surveyAbbreviation}`
+        `/surveys/${surveyAbbreviation}`,
+        { params: this.authParams() }
       );
       return response.data;
     } catch (error) {
