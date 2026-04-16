@@ -9,10 +9,6 @@ import { registerSeriesTools } from "../src/tools/series.js";
 class RecordingBlsClient extends BlsClient {
   public getSeriesDataCalls = 0;
 
-  constructor() {
-    super();
-  }
-
   async getSeriesData(): Promise<unknown> {
     this.getSeriesDataCalls += 1;
     throw new Error("HTTP client should not be called when validation fails");
@@ -32,21 +28,23 @@ async function buildServer() {
 }
 
 test("get_multiple_series rejects start_year > end_year without calling the HTTP client", async () => {
-  const { client, recording } = await buildServer();
+  const { client, server, recording } = await buildServer();
 
-  const result = (await client.callTool({
-    name: "get_multiple_series",
-    arguments: {
-      series_ids: ["LAUCN040010000000005"],
-      start_year: "2025",
-      end_year: "2020",
-    },
-  })) as { isError?: boolean; content: { type: string; text: string }[] };
+  try {
+    const result = (await client.callTool({
+      name: "get_multiple_series",
+      arguments: {
+        series_ids: ["LAUCN040010000000005"],
+        start_year: "2025",
+        end_year: "2020",
+      },
+    })) as { isError?: boolean; content: { type: string; text: string }[] };
 
-  assert.equal(result.isError, true);
-  assert.equal(recording.getSeriesDataCalls, 0);
-  assert.match(result.content[0].text, /^Error: start_year \(2025\) must not be after end_year \(2020\)$/);
-  assert.doesNotMatch(result.content[0].text, /Unexpected error/);
-
-  await client.close();
+    assert.equal(result.isError, true);
+    assert.equal(recording.getSeriesDataCalls, 0);
+    assert.match(result.content[0].text, /^Error: start_year \(2025\) must not be after end_year \(2020\)$/);
+    assert.doesNotMatch(result.content[0].text, /Unexpected error/);
+  } finally {
+    await Promise.all([client.close(), server.close()]);
+  }
 });

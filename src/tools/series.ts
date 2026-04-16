@@ -87,7 +87,7 @@ export function registerSeriesTools(server: McpServer, client: Client) {
         .describe("Include aspect data (requires registration key)"),
     },
     async ({ series_ids, start_year, end_year, catalog, calculations, annual_average, aspects }) => {
-      if (start_year !== undefined && end_year !== undefined && start_year > end_year) {
+      if (start_year !== undefined && end_year !== undefined && Number(start_year) > Number(end_year)) {
         return wrapValidationError(`start_year (${start_year}) must not be after end_year (${end_year})`);
       }
       try {
