@@ -43,6 +43,8 @@ export class Client {
   private authParams(extra?: Record<string, unknown>): Record<string, unknown> | undefined {
     const params: Record<string, unknown> = { ...extra };
     if (this.registrationKey) {
+      // BLS v2 accepts `registrationkey` as a query param on GET endpoints.
+      // Tradeoff: it lifts rate limits but may surface the key in URL/access logs.
       params.registrationkey = this.registrationKey;
     }
     return Object.keys(params).length > 0 ? params : undefined;

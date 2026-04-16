@@ -17,3 +17,10 @@ export function wrapError(error: unknown): { content: { type: "text"; text: stri
     isError: true,
   };
 }
+
+export function wrapValidationError(message: string): { content: { type: "text"; text: string }[]; isError: true } {
+  return {
+    content: [{ type: "text" as const, text: `Error: ${message}` }],
+    isError: true,
+  };
+}
